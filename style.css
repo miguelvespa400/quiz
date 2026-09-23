@@ -12,7 +12,7 @@ button { cursor: pointer; }
 .screen-start { display: grid; grid-template-columns: 1.05fr .95fr; background: var(--paper); }
 .intro-copy { padding: clamp(42px, 7vw, 108px) clamp(28px, 8vw, 125px); position: relative; background: var(--ink); color: #f9f6ed; overflow: hidden; }
 .intro-copy::after { content: ''; position: absolute; width: 430px; height: 430px; border: 1px solid rgba(245,195,68,.28); border-radius: 50%; right: -190px; bottom: -140px; box-shadow: 0 0 0 50px rgba(245,195,68,.04), 0 0 0 100px rgba(245,195,68,.025); }
-.brand-mark { width: 45px; height: 45px; display: grid; place-items: center; border: 2px solid var(--yellow); color: var(--yellow); font-size: 19px; font-weight: 700; letter-spacing: -2px; }
+.brand-mark { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; gap: 1px; border: 2px solid var(--yellow); color: var(--yellow); font-size: 19px; font-weight: 700; letter-spacing: -2px; }
 .brand-mark span, .brand-mini strong { color: var(--orange); }
 .eyebrow { color: var(--orange); margin: 0 0 17px; text-transform: uppercase; letter-spacing: .17em; font-size: 11px; font-weight: 700; }
 .intro-copy .eyebrow { margin-top: clamp(110px, 16vh, 190px); }
