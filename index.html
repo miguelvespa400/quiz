@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111827">
+  <title>Quiz de Histórias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="screen screen-start" id="start-screen" aria-labelledby="game-title">
+      <div class="intro-copy">
+        <div class="brand-mark" aria-hidden="true">Q<span>+</span></div>
+        <p class="eyebrow">Desafio em dupla</p>
+        <h1 id="game-title">Quiz de<br><em>Histórias</em></h1>
+        <p class="intro-text">Viaje por contos, mitos e grandes acontecimentos. Quem tem a melhor memória?</p>
+      </div>
+
+      <div class="setup-panel">
+        <div class="panel-heading">
+          <p class="step-label">01 <span>Identificação</span></p>
+          <h2>Quem vai jogar?</h2>
+        </div>
+        <form id="setup-form" novalidate>
+          <label class="field-label" for="player-one">Jogador 1</label>
+          <div class="input-wrap player-one-input">
+            <span class="player-number">01</span>
+            <input id="player-one" name="player-one" type="text" maxlength="18" placeholder="Digite um nome" autocomplete="off" required>
+          </div>
+          <label class="field-label" for="player-two">Jogador 2</label>
+          <div class="input-wrap player-two-input">
+            <span class="player-number">02</span>
+            <input id="player-two" name="player-two" type="text" maxlength="18" placeholder="Digite um nome" autocomplete="off" required>
+          </div>
+          <p class="form-error" id="form-error" role="alert"></p>
+          <button class="primary-button" type="submit">Escolher dificuldade <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="microcopy"><span aria-hidden="true">◷</span> 30 segundos por pergunta</p>
+        <button class="history-link" id="open-history" type="button">Ver histórico <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
+    <section class="screen screen-levels is-hidden" id="levels-screen" aria-labelledby="levels-title">
+      <header class="simple-header">
+        <button class="text-button" id="back-to-start" type="button"><span aria-hidden="true">←</span> Início</button>
+        <div class="brand-mini">QUIZ <strong>+</strong></div>
+        <span class="progress-note">02 / 03</span>
+      </header>
+      <div class="levels-content">
+        <p class="eyebrow">Agora começa</p>
+        <h2 id="levels-title">Escolha o nível<br><em>da aventura.</em></h2>
+        <p class="section-lead">As perguntas ficam mais desafiadoras a cada etapa. Todas as perguntas do nível escolhido entram na partida.</p>
+        <div class="level-grid" role="list">
+          <button class="level-card level-easy" data-level="facil" type="button" role="listitem">
+            <span class="level-icon" aria-hidden="true">✦</span><span class="level-index">01</span><strong>Fácil</strong><small>Para aquecer a memória</small><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="level-card level-medium" data-level="medio" type="button" role="listitem">
+            <span class="level-icon" aria-hidden="true">◈</span><span class="level-index">02</span><strong>Médio</strong><small>Um bom teste de atenção</small><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="level-card level-hard" data-level="dificil" type="button" role="listitem">
+            <span class="level-icon" aria-hidden="true">♢</span><span class="level-index">03</span><strong>Difícil</strong><small>Para quem sabe de verdade</small><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen-quiz is-hidden" id="quiz-screen" aria-labelledby="question-text">
+      <header class="game-header">
+        <div class="brand-mini">QUIZ <strong>+</strong></div>
+        <div class="turn-indicator" id="turn-indicator">Vez de <strong>Jogador 1</strong></div>
+        <div class="scoreboard" aria-label="Placar">
+          <span id="score-player-one-label">Jogador 1 <b>0</b></span>
+          <span class="score-divider">:</span>
+          <span id="score-player-two-label">Jogador 2 <b>0</b></span>
+        </div>
+      </header>
+      <div class="quiz-progress-row">
+        <span id="question-counter">PERGUNTA 01 DE 06</span>
+        <span id="level-label">NÍVEL FÁCIL</span>
+      </div>
+      <div class="progress-track"><span id="question-progress"></span></div>
+      <div class="quiz-layout">
+        <div class="question-column">
+          <p class="question-category" id="question-category">CONTO CLÁSSICO</p>
+          <h1 id="question-text">Carregando pergunta...</h1>
+          <div class="answers-grid" id="answers-container"></div>
+          <p class="answer-feedback" id="answer-feedback" aria-live="polite"></p>
+        </div>
+        <aside class="timer-panel" aria-label="Tempo restante">
+          <div class="timer-ring" id="timer-ring"><div><strong id="timer-value">30</strong><span>segundos</span></div></div>
+          <p>O tempo está<br><strong>correndo.</strong></p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen screen-history is-hidden" id="history-screen" aria-labelledby="history-title">
+      <header class="simple-header">
+        <button class="text-button" id="back-from-history" type="button"><span aria-hidden="true">←</span> Início</button>
+        <div class="brand-mini">QUIZ <strong>+</strong></div>
+        <span class="progress-note">HISTÓRICO</span>
+      </header>
+      <div class="history-content">
+        <p class="eyebrow">Suas aventuras</p>
+        <h2 id="history-title">Histórico de<br><em>partidas.</em></h2>
+        <div class="history-toolbar"><p id="history-count">0 partidas concluídas</p><button class="clear-history" id="clear-history" type="button">Limpar histórico</button></div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </section>
+
+    <section class="screen screen-results is-hidden" id="results-screen" aria-labelledby="results-title">
+      <div class="results-topline"><div class="brand-mini">QUIZ <strong>+</strong></div><span>RESULTADO FINAL</span></div>
+      <div class="results-content">
+        <p class="eyebrow">A aventura terminou</p>
+        <h1 id="results-title">Uma história<br><em>bem disputada.</em></h1>
+        <div class="final-score" id="final-score"></div>
+        <p class="tie-message" id="tie-message"></p>
+        <div class="results-actions"><button class="primary-button" id="play-again" type="button">Jogar novamente <span aria-hidden="true">↻</span></button><button class="secondary-button" id="back-home" type="button">Voltar ao início</button></div>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
