@@ -25,11 +25,12 @@ const questionsByLevel = {
   ]
 };
 
-const levelNames = { facil: 'FÁCIL', medio: 'MÉDIO', dificil: 'DIFÍCIL' };
+const levelNames = { facil: 'FÁCIL', medio: 'MÉDIO', dificil: 'DIFÍCIL', misto: 'MISTO' };
 const historyStorageKey = 'quizHistorico';
-const state = { players: ['', ''], scores: [0, 0], level: '', questions: [], currentQuestion: 0, currentPlayer: 0, timer: 30, timerId: null, locked: false };
+const customQuestionsStorageKey = 'quizPerguntasPersonalizadas';
+const state = { players: ['', ''], scores: [0, 0], level: '', rounds: 0, questions: [], currentQuestion: 0, currentPlayer: 0, timer: 30, timerId: null, locked: false };
 const $ = (selector) => document.querySelector(selector);
-const screens = { start: $('#start-screen'), levels: $('#levels-screen'), quiz: $('#quiz-screen'), history: $('#history-screen'), results: $('#results-screen') };
+const screens = { start: $('#start-screen'), levels: $('#levels-screen'), manager: $('#manager-screen'), quiz: $('#quiz-screen'), history: $('#history-screen'), results: $('#results-screen') };
 
 function showScreen(screen) { Object.values(screens).forEach((item) => item.classList.add('is-hidden')); screens[screen].classList.remove('is-hidden'); window.scrollTo(0, 0); }
 function shuffle(items) { return [...items].sort(() => Math.random() - 0.5); }
@@ -81,7 +82,28 @@ function finishQuestion(selectedIndex, timedOut) {
     else { state.currentPlayer = state.currentPlayer === 0 ? 1 : 0; loadQuestion(); }
   }, 1150);
 }
-function beginGame(level) { state.level = level; state.questions = shuffle(questionsByLevel[level]); state.scores = [0, 0]; state.currentQuestion = 0; state.currentPlayer = 0; updateScoreboard(); showScreen('quiz'); loadQuestion(); }
+function readCustomQuestions() { try { return JSON.parse(localStorage.getItem(customQuestionsStorageKey)) || []; } catch (error) { return []; } }
+function writeCustomQuestions(questions) { localStorage.setItem(customQuestionsStorageKey, JSON.stringify(questions)); }
+function questionsForLevel(level) { return readCustomQuestions().filter((question) => level === 'misto' || question.level === level); }
+function updateLevelSettings() {
+  const level = state.level;
+  const available = level ? questionsForLevel(level).length : 0;
+  const roundInput = $('#round-count');
+  roundInput.max = available || 1;
+  if (available && Number(roundInput.value) > available) roundInput.value = available;
+  $('#game-settings').classList.toggle('is-visible', Boolean(level));
+  $('#start-game').disabled = !level || !available;
+  $('#selected-level-label').textContent = level ? `Nível ${levelNames[level]}` : 'Escolha um nível';
+  $('#available-questions').textContent = level ? (available ? `${available} perguntas cadastradas neste nível.` : 'Cadastre pelo menos uma pergunta para iniciar.') : 'Selecione um nível para continuar.';
+}
+function beginGame(level, rounds) { state.level = level; state.rounds = rounds; state.questions = shuffle(questionsForLevel(level)).slice(0, rounds); state.scores = [0, 0]; state.currentQuestion = 0; state.currentPlayer = 0; updateScoreboard(); showScreen('quiz'); loadQuestion(); }
+function renderCustomQuestions() {
+  const questions = readCustomQuestions();
+  $('#custom-question-count').textContent = `${questions.length} ${questions.length === 1 ? 'pergunta cadastrada' : 'perguntas cadastradas'}`;
+  $('#custom-question-list').innerHTML = questions.length ? questions.map((question) => `<article class="custom-question-item"><div><p>${escapeHtml(question.text)}</p><small>${levelNames[question.level]} · ${escapeHtml(question.category)}</small></div><button class="delete-question" data-id="${question.id}" type="button">Excluir</button></article>`).join('') : '<p class="history-empty">Nenhuma pergunta personalizada cadastrada.</p>';
+  $('#custom-question-list').querySelectorAll('.delete-question').forEach((button) => button.addEventListener('click', () => { writeCustomQuestions(readCustomQuestions().filter((question) => question.id !== button.dataset.id)); renderCustomQuestions(); }));
+}
+function openQuestionManager() { renderCustomQuestions(); showScreen('manager'); }
 function readHistory() { try { return JSON.parse(localStorage.getItem(historyStorageKey)) || []; } catch (error) { return []; } }
 function saveHistory() { localStorage.setItem(historyStorageKey, JSON.stringify(readHistory())); }
 function escapeHtml(value) { return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character])); }
@@ -103,11 +125,27 @@ function showResults() {
 }
 function resetToStart() { clearInterval(state.timerId); $('#setup-form').reset(); $('#form-error').textContent = ''; showScreen('start'); }
 
-$('#setup-form').addEventListener('submit', (event) => { event.preventDefault(); const first = $('#player-one').value.trim(); const second = $('#player-two').value.trim(); if (!first || !second) { $('#form-error').textContent = 'Preencha o nome dos dois jogadores para continuar.'; return; } if (first.toLowerCase() === second.toLowerCase()) { $('#form-error').textContent = 'Os jogadores precisam ter nomes diferentes.'; return; } state.players = [first, second]; showScreen('levels'); });
-$('.level-grid').querySelectorAll('.level-card').forEach((card) => card.addEventListener('click', () => beginGame(card.dataset.level)));
+$('#setup-form').addEventListener('submit', (event) => { event.preventDefault(); const first = $('#player-one').value.trim(); const second = $('#player-two').value.trim(); if (!first || !second) { $('#form-error').textContent = 'Preencha o nome dos dois jogadores para continuar.'; return; } if (first.toLowerCase() === second.toLowerCase()) { $('#form-error').textContent = 'Os jogadores precisam ter nomes diferentes.'; return; } state.players = [first, second]; state.level = ''; $('.level-card.is-selected')?.classList.remove('is-selected'); updateLevelSettings(); showScreen('levels'); });
+$('.level-grid').querySelectorAll('.level-card').forEach((card) => card.addEventListener('click', () => { $('.level-card.is-selected')?.classList.remove('is-selected'); card.classList.add('is-selected'); state.level = card.dataset.level; updateLevelSettings(); }));
+$('#round-count').addEventListener('input', () => { $('#round-error').textContent = ''; });
+$('#start-game').addEventListener('click', () => { const rounds = Number($('#round-count').value); const available = questionsForLevel(state.level).length; if (!Number.isInteger(rounds) || rounds < 1 || rounds > available) { $('#round-error').textContent = `Escolha entre 1 e ${available} rodadas.`; return; } beginGame(state.level, rounds); });
 $('#back-to-start').addEventListener('click', resetToStart);
 $('#open-history').addEventListener('click', openHistory);
 $('#back-from-history').addEventListener('click', resetToStart);
 $('#clear-history').addEventListener('click', () => { localStorage.removeItem(historyStorageKey); renderHistory(); });
-$('#play-again').addEventListener('click', () => beginGame(state.level));
+$('#open-question-manager').addEventListener('click', openQuestionManager);
+$('#back-from-manager').addEventListener('click', resetToStart);
+$('#question-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  $('#question-form-error').className = 'form-error';
+  const fields = ['question-category-input', 'question-text-input', 'option-a', 'option-b', 'option-c', 'option-d'];
+  if (fields.some((id) => !$('#' + id).value.trim())) { $('#question-form-error').textContent = 'Preencha todos os campos da pergunta.'; return; }
+  const question = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, level: $('#question-level').value, category: $('#question-category-input').value.trim().toUpperCase(), text: $('#question-text-input').value.trim(), options: ['option-a', 'option-b', 'option-c', 'option-d'].map((id) => $('#' + id).value.trim()), answer: Number($('#correct-option').value) };
+  writeCustomQuestions([question, ...readCustomQuestions()]);
+  $('#question-form').reset();
+  $('#question-form-error').textContent = 'Pergunta cadastrada com sucesso.';
+  $('#question-form-error').className = 'form-error is-success';
+  renderCustomQuestions();
+});
+$('#play-again').addEventListener('click', () => beginGame(state.level, state.rounds));
 $('#back-home').addEventListener('click', resetToStart);

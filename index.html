@@ -41,6 +41,7 @@
         </form>
         <p class="microcopy"><span aria-hidden="true">◷</span> 30 segundos por pergunta</p>
         <button class="history-link" id="open-history" type="button">Ver histórico <span aria-hidden="true">↗</span></button>
+        <button class="history-link question-link" id="open-question-manager" type="button">Cadastrar perguntas <span aria-hidden="true">+</span></button>
       </div>
     </section>
 
@@ -53,7 +54,7 @@
       <div class="levels-content">
         <p class="eyebrow">Agora começa</p>
         <h2 id="levels-title">Escolha o nível<br><em>da aventura.</em></h2>
-        <p class="section-lead">As perguntas ficam mais desafiadoras a cada etapa. Todas as perguntas do nível escolhido entram na partida.</p>
+        <p class="section-lead">Cadastre suas próprias perguntas, escolha o nível e defina quantas rodadas a dupla quer jogar.</p>
         <div class="level-grid" role="list">
           <button class="level-card level-easy" data-level="facil" type="button" role="listitem">
             <span class="level-icon" aria-hidden="true">✦</span><span class="level-index">01</span><strong>Fácil</strong><small>Para aquecer a memória</small><span class="card-arrow" aria-hidden="true">↗</span>
@@ -64,7 +65,47 @@
           <button class="level-card level-hard" data-level="dificil" type="button" role="listitem">
             <span class="level-icon" aria-hidden="true">♢</span><span class="level-index">03</span><strong>Difícil</strong><small>Para quem sabe de verdade</small><span class="card-arrow" aria-hidden="true">↗</span>
           </button>
+          <button class="level-card level-mixed" data-level="misto" type="button" role="listitem">
+            <span class="level-icon" aria-hidden="true">✣</span><span class="level-index">04</span><strong>Misto</strong><small>Uma viagem por todos os níveis</small><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
         </div>
+        <div class="game-settings" id="game-settings" aria-live="polite">
+          <div><p class="settings-label">Configuração da partida</p><strong id="selected-level-label">Escolha um nível</strong><p id="available-questions">Selecione um nível para continuar.</p></div>
+          <label class="rounds-field" for="round-count">Rodadas <input id="round-count" type="number" min="1" value="6"></label>
+          <p class="form-error" id="round-error" role="alert"></p>
+          <button class="primary-button" id="start-game" type="button" disabled>Começar partida <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen-manager is-hidden" id="manager-screen" aria-labelledby="manager-title">
+      <header class="simple-header">
+        <button class="text-button" id="back-from-manager" type="button"><span aria-hidden="true">←</span> Início</button>
+        <div class="brand-mini">QUIZ <strong>+</strong></div>
+        <span class="progress-note">PERGUNTAS</span>
+      </header>
+      <div class="manager-content">
+        <p class="eyebrow">Monte seu desafio</p>
+        <h2 id="manager-title">Cadastrar<br><em>pergunta.</em></h2>
+        <form class="question-form" id="question-form" novalidate>
+          <label class="field-label" for="question-level">Nível</label>
+          <select id="question-level" required><option value="facil">Fácil</option><option value="medio">Médio</option><option value="dificil">Difícil</option></select>
+          <label class="field-label" for="question-category-input">Categoria</label>
+          <input id="question-category-input" type="text" maxlength="24" placeholder="Ex.: Mitologia" required>
+          <label class="field-label" for="question-text-input">Enunciado</label>
+          <textarea id="question-text-input" maxlength="220" placeholder="Escreva a pergunta" required></textarea>
+          <div class="options-fields">
+            <div><label class="field-label" for="option-a">Alternativa A</label><input id="option-a" required></div>
+            <div><label class="field-label" for="option-b">Alternativa B</label><input id="option-b" required></div>
+            <div><label class="field-label" for="option-c">Alternativa C</label><input id="option-c" required></div>
+            <div><label class="field-label" for="option-d">Alternativa D</label><input id="option-d" required></div>
+          </div>
+          <label class="field-label" for="correct-option">Resposta correta</label>
+          <select id="correct-option"><option value="0">Alternativa A</option><option value="1">Alternativa B</option><option value="2">Alternativa C</option><option value="3">Alternativa D</option></select>
+          <p class="form-error" id="question-form-error" role="alert"></p>
+          <button class="primary-button" type="submit">Salvar pergunta <span aria-hidden="true">+</span></button>
+        </form>
+        <div class="custom-questions-section"><div class="history-toolbar"><p id="custom-question-count">0 perguntas cadastradas</p></div><div class="custom-question-list" id="custom-question-list"></div></div>
       </div>
     </section>
 
