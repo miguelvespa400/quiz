@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#2f1d12">
   <title>Quiz de Histórias</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,8 +16,8 @@
       <div class="intro-copy">
         <div class="brand-mark" aria-hidden="true">Q<span>+</span></div>
         <p class="eyebrow">Desafio em dupla</p>
-        <h1 id="game-title">Quiz de<br><em>Histórias</em></h1>
-        <p class="intro-text">Viaje por contos, mitos e grandes acontecimentos. Quem tem a melhor memória?</p>
+        <h1 id="game-title">Quiz de<br><em>História</em></h1>
+        <p class="intro-text">Guerras, tratados, revoltas e impérios. Quem errar entrega os pontos para o adversário.</p>
       </div>
 
       <div class="setup-panel">
@@ -39,7 +39,7 @@
           <p class="form-error" id="form-error" role="alert"></p>
           <button class="primary-button" type="submit">Escolher dificuldade <span aria-hidden="true">→</span></button>
         </form>
-        <p class="microcopy"><span aria-hidden="true">◷</span> 30 segundos por pergunta</p>
+        <p class="microcopy"><span aria-hidden="true">◷</span> Tempo e pontos sobem conforme o nível: 30s/1pt · 30s/3pts · 45s/5pts · 50s/10pts</p>
         <button class="history-link" id="open-history" type="button">Ver histórico <span aria-hidden="true">↗</span></button>
         <button class="history-link question-link" id="open-question-manager" type="button">Cadastrar perguntas <span aria-hidden="true">+</span></button>
       </div>
@@ -54,7 +54,7 @@
       <div class="levels-content">
         <p class="eyebrow">Agora começa</p>
         <h2 id="levels-title">Escolha o nível<br><em>da aventura.</em></h2>
-        <p class="section-lead">Cadastre suas próprias perguntas, escolha o nível e defina quantas rodadas a dupla quer jogar.</p>
+        <p class="section-lead">Escolha o nível e defina quantas rodadas a dupla quer jogar. Quanto mais difícil, mais tempo e mais pontos vale cada pergunta. Quem erra ou deixa o tempo acabar entrega os pontos para o adversário.</p>
         <div class="level-grid" role="list">
           <button class="level-card level-easy" data-level="facil" type="button" role="listitem">
             <span class="level-icon" aria-hidden="true">✦</span><span class="level-index">01</span><strong>Fácil</strong><small>Para aquecer a memória</small><span class="card-arrow" aria-hidden="true">↗</span>
@@ -65,8 +65,11 @@
           <button class="level-card level-hard" data-level="dificil" type="button" role="listitem">
             <span class="level-icon" aria-hidden="true">♢</span><span class="level-index">03</span><strong>Difícil</strong><small>Para quem sabe de verdade</small><span class="card-arrow" aria-hidden="true">↗</span>
           </button>
+          <button class="level-card level-superhard" data-level="superdificil" type="button" role="listitem">
+            <span class="level-icon" aria-hidden="true">✷</span><span class="level-index">04</span><strong>Super difícil</strong><small>Antiguidade clássica sem piedade</small><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
           <button class="level-card level-mixed" data-level="misto" type="button" role="listitem">
-            <span class="level-icon" aria-hidden="true">✣</span><span class="level-index">04</span><strong>Misto</strong><small>Uma viagem por todos os níveis</small><span class="card-arrow" aria-hidden="true">↗</span>
+            <span class="level-icon" aria-hidden="true">✣</span><span class="level-index">05</span><strong>Misto</strong><small>Uma viagem por todos os níveis</small><span class="card-arrow" aria-hidden="true">↗</span>
           </button>
         </div>
         <div class="game-settings" id="game-settings" aria-live="polite">
@@ -89,7 +92,7 @@
         <h2 id="manager-title">Cadastrar<br><em>pergunta.</em></h2>
         <form class="question-form" id="question-form" novalidate>
           <label class="field-label" for="question-level">Nível</label>
-          <select id="question-level" required><option value="facil">Fácil</option><option value="medio">Médio</option><option value="dificil">Difícil</option></select>
+          <select id="question-level" required><option value="facil">Fácil (30s · 1 ponto)</option><option value="medio">Médio (30s · 3 pontos)</option><option value="dificil">Difícil (45s · 5 pontos)</option><option value="superdificil">Super difícil (50s · 10 pontos)</option></select>
           <label class="field-label" for="question-category-input">Categoria</label>
           <input id="question-category-input" type="text" maxlength="24" placeholder="Ex.: Mitologia" required>
           <label class="field-label" for="question-text-input">Enunciado</label>
@@ -135,6 +138,21 @@
           <div class="timer-ring" id="timer-ring"><div><strong id="timer-value">30</strong><span>segundos</span></div></div>
           <p>O tempo está<br><strong>correndo.</strong></p>
         </aside>
+      </div>
+    </section>
+
+    <section class="screen screen-interval is-hidden" id="interval-screen" aria-labelledby="interval-title">
+      <header class="results-topline"><div class="brand-mini">QUIZ <strong>+</strong></div><span id="interval-progress">PLACAR PARCIAL</span></header>
+      <div class="interval-content">
+        <p class="eyebrow">Intervalo</p>
+        <h2 id="interval-title">Como está<br><em>o placar.</em></h2>
+        <div class="interval-board" id="interval-board" aria-live="polite"></div>
+        <p class="interval-status" id="interval-status"></p>
+        <p class="interval-next" id="interval-next"></p>
+        <div class="interval-actions">
+          <button class="primary-button" id="interval-continue" type="button">Próxima pergunta <span aria-hidden="true">→</span></button>
+          <span class="interval-countdown" id="interval-countdown"></span>
+        </div>
       </div>
     </section>
 
