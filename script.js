@@ -52,6 +52,8 @@ const questionsByLevel = {
 };
 
 const levelNames = { facil: 'FÁCIL', medio: 'MÉDIO', dificil: 'DIFÍCIL', superdificil: 'SUPER DIFÍCIL', misto: 'MISTO' };
+// Ordem de dificuldade. O sorteio é cumulativo: cada nível inclui todos os anteriores.
+const levelOrder = ['facil', 'medio', 'dificil', 'superdificil'];
 const historyStorageKey = 'quizHistorico';
 const customQuestionsStorageKey = 'quizPerguntasPersonalizadas';
 const state = { players: ['', ''], scores: [0, 0], level: '', rounds: 0, questions: [], currentQuestion: 0, currentPlayer: 0, timer: 0, timeTotal: defaultTime, timerId: null, intervalId: null, locked: false, lastRound: null };
@@ -78,14 +80,22 @@ function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (character
 function timeForQuestion(question) { return timeByLevel[question && question.level] || defaultTime; }
 function pointsForQuestion(question) { return pointsByLevel[question && question.level] || 1; }
 function pointsLabel(points) { return `${points} ${points === 1 ? 'ponto' : 'pontos'}`; }
-function levelBadge(level) {
-  if (level === 'misto') {
-    const times = Object.values(timeByLevel);
-    const points = Object.values(pointsByLevel);
-    return `${Math.min(...times)}s a ${Math.max(...times)}s · ${Math.min(...points)} a ${Math.max(...points)} pontos`;
-  }
-  return `${timeByLevel[level] || defaultTime}s · ${pointsLabel(pointsByLevel[level] || 1)}`;
+// Quais níveis entram no sorteio de um nível escolhido (ele e todos os mais fáceis).
+function levelsIncluded(level) {
+  if (level === 'misto') return [...levelOrder];
+  const limit = levelOrder.indexOf(level);
+  return limit === -1 ? [] : levelOrder.slice(0, limit + 1);
 }
+function rangeLabel(values, unit) { const low = Math.min(...values); const high = Math.max(...values); return low === high ? `${low}${unit}` : `${low}${unit} a ${high}${unit}`; }
+function levelBadge(level) {
+  const included = levelsIncluded(level);
+  if (!included.length) return '';
+  const times = included.map((item) => timeByLevel[item] || defaultTime);
+  const points = included.map((item) => pointsByLevel[item] || 1);
+  const pointText = Math.min(...points) === Math.max(...points) ? pointsLabel(points[0]) : `${Math.min(...points)} a ${Math.max(...points)} pontos`;
+  return `${rangeLabel(times, 's')} · ${pointText}`;
+}
+function levelComposition(level) { return levelsIncluded(level).map((item) => levelNames[item].toLowerCase()).join(' + '); }
 function updateScoreboard() { $('#score-player-one-label').innerHTML = `${escapeHtml(state.players[0])} <b>${state.scores[0]}</b>`; $('#score-player-two-label').innerHTML = `${escapeHtml(state.players[1])} <b>${state.scores[1]}</b>`; }
 function updateTimer() { const progress = state.timeTotal ? (state.timer / state.timeTotal) * 100 : 0; $('#timer-value').textContent = state.timer; $('#timer-ring').style.background = `conic-gradient(var(--orange) ${progress}%, #e8dbc9 0)`; }
 function startTimer() { clearInterval(state.timerId); state.timer = state.timeTotal; updateTimer(); state.timerId = setInterval(() => { state.timer -= 1; updateTimer(); if (state.timer <= 0) { clearInterval(state.timerId); finishQuestion(null, true); } }, 1000); }
@@ -174,7 +184,7 @@ function continueAfterInterval() { clearInterval(state.intervalId); showScreen('
 function readCustomQuestions() { try { return JSON.parse(localStorage.getItem(customQuestionsStorageKey)) || []; } catch (error) { return []; } }
 function writeCustomQuestions(questions) { localStorage.setItem(customQuestionsStorageKey, JSON.stringify(questions)); }
 function builtInQuestions() { return Object.entries(questionsByLevel).flatMap(([level, list]) => list.map((question, index) => ({ ...question, level, id: `base-${level}-${index}` }))); }
-function questionsForLevel(level) { return [...builtInQuestions(), ...readCustomQuestions()].filter((question) => level === 'misto' || question.level === level); }
+function questionsForLevel(level) { const included = levelsIncluded(level); return [...builtInQuestions(), ...readCustomQuestions()].filter((question) => included.includes(question.level)); }
 function updateLevelSettings() {
   const level = state.level;
   const available = level ? questionsForLevel(level).length : 0;
@@ -184,7 +194,7 @@ function updateLevelSettings() {
   $('#game-settings').classList.toggle('is-visible', Boolean(level));
   $('#start-game').disabled = !level || !available;
   $('#selected-level-label').textContent = level ? `Nível ${levelNames[level]} · ${levelBadge(level)}` : 'Escolha um nível';
-  $('#available-questions').textContent = level ? (available ? `${available} perguntas disponíveis neste nível.` : 'Cadastre pelo menos uma pergunta para iniciar.') : 'Selecione um nível para continuar.';
+  $('#available-questions').textContent = level ? (available ? `${available} perguntas no sorteio (${levelComposition(level)}). Cada pergunta vale o tempo e os pontos do próprio nível dela.` : 'Cadastre pelo menos uma pergunta para iniciar.') : 'Selecione um nível para continuar.';
 }
 function beginGame(level, rounds) { clearInterval(state.intervalId); state.level = level; state.rounds = rounds; state.questions = shuffle(questionsForLevel(level)).slice(0, rounds).map(shuffleOptions); state.scores = [0, 0]; state.currentQuestion = 0; state.currentPlayer = 0; state.lastRound = null; updateScoreboard(); showScreen('quiz'); loadQuestion(); }
 function renderCustomQuestions() {
